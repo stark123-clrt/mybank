@@ -1,0 +1,9 @@
+{
+    "require": {
+        "symfony/security-bundle": "^7.2",
+        "nelmio/cors-bundle": "^2.5"
+    },
+    "require-dev": {
+        "symfony/maker-bundle": "^1.62"
+    }
+}

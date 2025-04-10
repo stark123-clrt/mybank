@@ -1,0 +1,45 @@
+api_login_check:
+    path: /api/login_check
+    # controller: App\Controller\SecurityController::loginCheck
+
+api_register:
+    path: /api/register
+    controller: App\Controller\SecurityController::register
+    methods: [POST]
+
+# Routes pour les catégories
+category_list:
+    path: /api/categories
+    controller: App\Controller\CategoryController::index
+    methods: [GET]
+
+category_create:
+    path: /api/categories
+    controller: App\Controller\CategoryController::create
+    methods: [POST]
+
+category_delete:
+    path: /api/categories/{id}
+    controller: App\Controller\CategoryController::delete
+    methods: [DELETE]
+
+# Routes pour les dépenses
+expense_list:
+    path: /api/expenses
+    controller: App\Controller\ExpenseController::index
+    methods: [GET]
+
+expense_create:
+    path: /api/expenses
+    controller: App\Controller\ExpenseController::create
+    methods: [POST]
+
+expense_update:
+    path: /api/expenses/{id}
+    controller: App\Controller\ExpenseController::update
+    methods: [PUT]
+
+expense_delete:
+    path: /api/expenses/{id}
+    controller: App\Controller\ExpenseController::delete
+    methods: [DELETE]

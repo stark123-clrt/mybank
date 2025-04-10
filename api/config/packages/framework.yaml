@@ -1,0 +1,15 @@
+framework:
+    secret: '%env(APP_SECRET)%'
+    session: true
+
+    # Correction de la configuration php_errors
+    php_errors:
+        log: true
+        # Supprimez l'option "display"
+        # throw: true  # Décommentez cette ligne si vous voulez que les erreurs soient lancées
+
+when@test:
+    framework:
+        test: true
+        session:
+            storage_factory_id: session.storage.factory.mock_file
