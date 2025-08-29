@@ -9,38 +9,51 @@ export function ExpensesProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Récupérer les données depuis l'API au chargement
   useEffect(() => {
-  // Dans la fonction fetchData de votre ExpensesContext.jsx
-const fetchData = async () => {
-  try {
-    setLoading(true);
-    
-    // Charger les catégories
-    const categoriesData = await getCategories();
-    // S'assurer que categories est toujours un tableau
-    setCategories(Array.isArray(categoriesData) ? categoriesData : []);
-    
-    // Charger les dépenses
-    const expensesData = await getExpenses();
-    // S'assurer que expenses est toujours un tableau
-    setExpenses(Array.isArray(expensesData) ? expensesData : []);
-    
-    setError(null);
-  } catch (err) {
-    console.error('Erreur lors du chargement des données:', err);
-    // Si l'erreur est 404 et que c'est normal (pas de données), ne pas afficher d'erreur
-    if (err.response && err.response.status === 404) {
-      setCategories([]);
-      setExpenses([]);
-      setError(null);
-    } else {
-      setError('Erreur lors du chargement des données. Veuillez réessayer.');
+    // AJOUT: Vérifier si l'utilisateur est connecté avant de faire les appels API
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setLoading(false);
+      return;
     }
-  } finally {
-    setLoading(false);
-  }
-};
+
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        // Attendre que les DEUX appels API soient terminés
+        const [categoriesData, expensesData] = await Promise.all([
+          getCategories(),
+          getExpenses()
+        ]);
+        
+        // S'assurer que categories est toujours un tableau
+        setCategories(Array.isArray(categoriesData) ? categoriesData : []);
+        
+        // S'assurer que expenses est toujours un tableau
+        setExpenses(Array.isArray(expensesData) ? expensesData : []);
+        
+      } catch (err) {
+        console.error('Erreur lors du chargement des données:', err);
+        
+        // Si erreur d'authentification, rediriger vers login
+        if (err.response && err.response.status === 401) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          window.location.href = '/login';
+          return;
+        }
+        
+        // Pour les autres erreurs, définir des tableaux vides
+        setCategories([]);
+        setExpenses([]);
+        setError('Erreur de connexion au serveur');
+      } finally {
+        // Toujours passer loading à false à la fin
+        setLoading(false);
+      }
+    };
 
     fetchData();
   }, []);
@@ -57,7 +70,6 @@ const fetchData = async () => {
     }
   };
 
-
   const updateExpenseData = async (id, updatedExpense) => {
     try {
       const result = await updateExpense(id, updatedExpense);
@@ -71,7 +83,6 @@ const fetchData = async () => {
     }
   };
 
-
   const deleteExpense = async (id) => {
     try {
       await apiDeleteExpense(id);
@@ -82,21 +93,19 @@ const fetchData = async () => {
     }
   };
 
-  // Ajout une catégorie
-
-const addCategory = async (category) => {
-  try {
-    console.log("Catégorie à ajouter:", category);
-    const newCategory = await createCategory(category);
-    console.log("Réponse de l'API:", newCategory);
-    setCategories([...categories, newCategory]);
-    return newCategory;
-  } catch (err) {
-    console.error('Erreur lors de l\'ajout de la catégorie:', err);
-    throw err;
-  }
-};
-
+  // Ajouter une catégorie
+  const addCategory = async (category) => {
+    try {
+      console.log("Catégorie à ajouter:", category);
+      const newCategory = await createCategory(category);
+      console.log("Réponse de l'API:", newCategory);
+      setCategories([...categories, newCategory]);
+      return newCategory;
+    } catch (err) {
+      console.error('Erreur lors de l\'ajout de la catégorie:', err);
+      throw err;
+    }
+  };
 
   const deleteCategoryData = async (id) => {
     try {

@@ -1,6 +1,10 @@
 security:
+    # Supprimez la ligne enable_authenticator_manager, elle n'est pas reconnue
+    
     password_hashers:
         Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
+        App\Entity\User:
+            algorithm: auto
     
     providers:
         app_user_provider:
@@ -16,22 +20,19 @@ security:
         login:
             pattern: ^/api/login
             stateless: true
-            json_login:
-                check_path: /api/login_check
-                success_handler: lexik_jwt_authentication.handler.authentication_success
-                failure_handler: lexik_jwt_authentication.handler.authentication_failure
+            security: false
+        
+        register:
+            pattern: ^/api/register
+            stateless: true
+            security: false
         
         api:
             pattern: ^/api
             stateless: true
             jwt: ~
-        
-        main:
-            lazy: true
-            provider: app_user_provider
-            # Ajoutez d'autres méthodes d'authentification si nécessaire
-
+    
     access_control:
-        - { path: ^/api/login_check, roles: PUBLIC_ACCESS }
+        - { path: ^/api/login, roles: PUBLIC_ACCESS }
         - { path: ^/api/register, roles: PUBLIC_ACCESS }
-        - { path: ^/api, roles: ROLE_USER }
+        - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }

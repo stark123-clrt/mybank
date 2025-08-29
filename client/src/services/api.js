@@ -25,7 +25,7 @@ api.interceptors.request.use(
 
 export const login = async (credentials) => {
   try {
-    const response = await api.post('/login_check', {
+    const response = await api.post('/login', {  
       username: credentials.email,
       password: credentials.password
     });
@@ -33,7 +33,8 @@ export const login = async (credentials) => {
     // Stocker le token
     localStorage.setItem('token', response.data.token);
     
-    const user = {
+    // Récupérer les données utilisateur depuis la réponse
+    const user = response.data.user || {
       email: credentials.email,
       name: credentials.email 
     };
@@ -134,6 +135,7 @@ export const createExpense = async (expense) => {
   }
 };
 
+
 export const updateExpense = async (id, expense) => {
   try {
     const response = await api.put(`/expenses/${id}`, expense);
@@ -143,6 +145,7 @@ export const updateExpense = async (id, expense) => {
     throw error;
   }
 };
+
 
 export const deleteExpense = async (id) => {
   try {

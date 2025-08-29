@@ -43,3 +43,8 @@ expense_delete:
     path: /api/expenses/{id}
     controller: App\Controller\ExpenseController::delete
     methods: [DELETE]
+
+api_login:
+  path: /api/login
+  controller: App\Controller\SecurityController::customLogin
+  methods: [POST] 

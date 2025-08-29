@@ -1,0 +1,12 @@
+{
+  "name": "mybank-integration-tests",
+  "version": "1.0.0",
+  "description": "Tests d'intégration pour MyBank",
+  "scripts": {
+    "test": "node test-api.js && node test-frontend.js",
+    "test:api": "node test-api.js",
+    "test:frontend": "node test-frontend.js"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

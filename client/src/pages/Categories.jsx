@@ -67,6 +67,7 @@ function Categories() {
     );
   }
 
+
   // Affichage des erreurs
   if (error) {
     return (

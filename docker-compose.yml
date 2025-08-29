@@ -1,0 +1,72 @@
+services:
+  # Base de données MySQL/MariaDB
+  database:
+    image: mariadb:10.4
+    container_name: mybank_database
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: mybank
+      MYSQL_USER: mybank_user
+      MYSQL_PASSWORD: Melisange123christ
+    ports:
+      - "3306:3306"
+    volumes:
+      # Import automatique de ta base de données
+      - ./mybank.sql:/docker-entrypoint-initdb.d/01-init.sql
+      - mysql_data:/var/lib/mysql
+    networks:
+      - mybank_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  # Backend Symfony (dossier api/)
+  backend:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: mybank_backend
+    environment:
+      - DATABASE_URL=mysql://mybank_user:Melisange123christ@database:3306/mybank
+      - APP_ENV=dev
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./api:/var/www/html
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - mybank_network
+
+  # Frontend React avec HOT-RELOAD (dossier client/)
+  frontend:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: mybank_frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
+      # Variables pour le hot-reload sur Windows
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+      - FAST_REFRESH=true
+    depends_on:
+      - backend
+    networks:
+      - mybank_network
+    # Commande pour le mode développement
+    command: npm run dev
+
+volumes:
+  mysql_data:
+
+networks:
+  mybank_network:
+    driver: bridge
