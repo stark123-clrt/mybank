@@ -76,50 +76,65 @@ jobs:
           cd client
           REACT_APP_API_URL=http://localhost:8000 npm run build
 
-      - name: Start PHP server in background
+      - name: Start PHP server in background and verify
         run: |
           cd api
-          php -S 0.0.0.0:8000 -t public &
+          php -S 0.0.0.0:8000 -t public > /tmp/php_server.log 2>&1 &
           PHP_PID=$!
           echo $PHP_PID > /tmp/php_server.pid
           echo "PHP server started with PID: $PHP_PID"
-          sleep 10
+          
+          # Attendre que le serveur PHP soit prêt
+          echo "Waiting for PHP server to be ready..."
+          for i in {1..60}; do
+            if curl -s -f http://localhost:8000 > /dev/null 2>&1; then
+              echo "PHP server is responding after $i attempts"
+              break
+            fi
+            if [ $i -eq 60 ]; then
+              echo "PHP server failed to start after 60 attempts"
+              cat /tmp/php_server.log
+              exit 1
+            fi
+            sleep 2
+          done
 
-      - name: Start React development server in background  
+      - name: Start React development server and verify
         run: |
           cd client
-          REACT_APP_API_URL=http://localhost:8000 npm start &
+          REACT_APP_API_URL=http://localhost:8000 npm start > /tmp/react_server.log 2>&1 &
           REACT_PID=$!
           echo $REACT_PID > /tmp/react_server.pid
-          echo "React server started with PID: $REACT_PID"  
-          sleep 15
-
-      - name: Verify servers are running
-        run: |
-          echo "Checking if PHP server is responding..."
-          for i in {1..30}; do
-            if curl -f http://localhost:8000; then
-              echo "PHP server is responding"
-              break
-            fi
-            echo "Attempt $i: PHP server not ready yet, waiting..."
-            sleep 2
-          done
+          echo "React server started with PID: $REACT_PID"
           
-          echo "Checking if React server is responding..."
-          for i in {1..30}; do
-            if curl -f http://localhost:3000; then
-              echo "React server is responding"  
+          # Attendre que le serveur React soit prêt
+          echo "Waiting for React server to be ready..."
+          for i in {1..60}; do
+            if curl -s -f http://localhost:3000 > /dev/null 2>&1; then
+              echo "React server is responding after $i attempts"
               break
             fi
-            echo "Attempt $i: React server not ready yet, waiting..."
-            sleep 2
+            if [ $i -eq 60 ]; then
+              echo "React server failed to start after 60 attempts"
+              cat /tmp/react_server.log
+              exit 1
+            fi
+            sleep 3
           done
+
+      - name: Final server status check
+        run: |
+          echo "=== Final server verification ==="
+          echo "Testing PHP server..."
+          curl -v http://localhost:8000 || echo "PHP server not accessible"
+          echo "Testing React server..."  
+          curl -v http://localhost:3000 || echo "React server not accessible"
 
       - name: Run real integration tests
         run: |
           cd tests/integration
           npm install
+          echo "Starting integration tests with servers on localhost:8000 and localhost:3000"
           API_URL=http://localhost:8000 FRONTEND_URL=http://localhost:3000 npm test
 
       - name: Test API endpoints directly
