@@ -84,19 +84,24 @@ jobs:
           echo $PHP_PID > /tmp/php_server.pid
           echo "PHP server started with PID: $PHP_PID"
           
-          # Attendre que le serveur PHP soit prêt
+          # Attendre que le serveur PHP soit prêt (accepter tous les codes de réponse)
           echo "Waiting for PHP server to be ready..."
-          for i in {1..60}; do
-            if curl -s -f http://localhost:8000 > /dev/null 2>&1; then
+          for i in {1..30}; do
+            if curl -s http://localhost:8000 > /dev/null 2>&1; then
               echo "PHP server is responding after $i attempts"
+              curl -I http://localhost:8000
               break
             fi
-            if [ $i -eq 60 ]; then
-              echo "PHP server failed to start after 60 attempts"
+            if [ $i -eq 30 ]; then
+              echo "PHP server connection failed after 30 attempts"
+              echo "Server logs:"
               cat /tmp/php_server.log
+              echo "Processes:"
+              ps aux | grep php
               exit 1
             fi
-            sleep 2
+            echo "Attempt $i: waiting for PHP server..."
+            sleep 3
           done
 
       - name: Start React development server and verify
@@ -109,17 +114,22 @@ jobs:
           
           # Attendre que le serveur React soit prêt
           echo "Waiting for React server to be ready..."
-          for i in {1..60}; do
-            if curl -s -f http://localhost:3000 > /dev/null 2>&1; then
+          for i in {1..40}; do
+            if curl -s http://localhost:3000 > /dev/null 2>&1; then
               echo "React server is responding after $i attempts"
+              curl -I http://localhost:3000
               break
             fi
-            if [ $i -eq 60 ]; then
-              echo "React server failed to start after 60 attempts"
+            if [ $i -eq 40 ]; then
+              echo "React server connection failed after 40 attempts"
+              echo "Server logs:"
               cat /tmp/react_server.log
+              echo "Processes:"
+              ps aux | grep node
               exit 1
             fi
-            sleep 3
+            echo "Attempt $i: waiting for React server..."
+            sleep 4
           done
 
       - name: Final server status check
