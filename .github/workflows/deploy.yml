@@ -13,7 +13,7 @@ env:
 jobs:
   # Job 1: Tests d'intégration robustes
   integration-tests:
-    name: Tests d'intégration
+    name: Tests d'intégrations
     runs-on: ubuntu-latest
     
     services:
